@@ -7,7 +7,7 @@ There are currently 5 scripts: (as suggested by Professor Jacob De Simoi, I will
 2. `T_D_and_inverse.py`
 3. `paper_method_reduced_matrix_T.ipynb`
 4. `vectorization_reduced_matrix_T.ipynb`
-5. `truncation_and_visualization.ipynb`
+5. `truncation_and_visualization.py`
 
 ---
 
@@ -281,7 +281,7 @@ It follows the same underlying mathematical approach (as laid out in the paper a
 ---
 
 
-### 5. truncation_and_visualization.ipynb
+### 5. truncation_and_visualization.py
 
 It focuses on **visualizing** the eigenvalues (the spectrum) of the reduced matrices $\tilde{T}$ generated in the previous steps, under various **truncations**. Three distinct visualization approaches are showcased:
 
