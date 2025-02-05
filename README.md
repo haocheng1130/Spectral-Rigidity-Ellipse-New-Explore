@@ -11,7 +11,7 @@ There are currently 5 scripts: (as suggested by Professor Jacob De Simoi, I will
 
 ---
 
-### 1. ellipse_axes_and_collisions.ipynb
+### 1. ellipse_axes_and_collisions.py
 
 **Overview:**  
 This script merges the functionality from [Shanza’s two scripts](https://github.com/shanzaayub/Spectral-Rigidity-Ellipse), originally named **e_and_semi_axes_file.py** and **Col_pts_find.py**. The first part calculates the semi-major and semi-minor axes of ellipses (with a fixed circumference of 1) for eccentricities $ e \in [0,1)$, while the second part computes collision points for orbits of different periods $q$ given those same eccentricities.
