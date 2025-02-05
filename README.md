@@ -1,10 +1,10 @@
 # Spectral-Rigidity-Ellipse-New-Explore
 We use the scripts contained herein to provide further numerical evidence for dynamical spectral rigidity among ellipses of various eccentricities. The code contained in these scripts follows the technique implemented in a paper by J. De Simoi, V. Kaloshin, and Q. Wei (a link to the paper is here: [Dynamical_Spectral_Rigidity](https://annals.math.princeton.edu/2017/186-1/p07)) and incorporates portions of code by Shanza Ayub.
 
-There are currently 5 scripts:
+There are currently 5 scripts: (as suggested by Professor Jacob De Simoi, I will put everything in py file)
 
 1. `ellipse_axes_and_collisions.ipynb`
-2. `T_D_and_inverse.ipynb`
+2. `T_D_and_inverse.py`
 3. `paper_method_reduced_matrix_T.ipynb`
 4. `vectorization_reduced_matrix_T.ipynb`
 5. `truncation_and_visualization.ipynb`
@@ -90,10 +90,10 @@ Ensure these libraries are installed, for instance via:
 
 ---
 
-### 2. T_D_and_inverse.ipynb
+### 2. T_D_and_inverse.py
 
 **Objective:**  
-Implements and saves six large $\(10000 \times 10000\)$ matrices derived from two core components:  
+Implements  six large $\(10000 \times 10000\)$ matrices derived from two core components:  
 1. A divisibility-based matrix $M$ (and its inverse using the Möbius function),  
 2. A diagonal matrix $D$ (and its inverse using the $\mathrm{sinc}$ function).  
 
@@ -108,12 +108,8 @@ Finally, these matrices are combined to produce $T_D = D \times M$ and $T_D^{-1}
 6. **Matrix $T_D^{-1}$**: Defined as $D^{-1} \times M^{-1}$.  
 
 **Generates six files:**  
-1. **matrix_M_10000x10000.csv**  
-2. **matrix_M_inverse_10000x10000.csv**  
-3. **matrix_D_10000x10000.csv**  
-4. **matrix_D_inverse_10000x10000.csv**  
-5. **matrix_T_D_10000x10000.csv**  
-6. **matrix_T_D_inverse_10000x10000.csv**  
+1. **matrix_T_D_10000x10000.csv**  
+2. **matrix_T_D_inverse_10000x10000.csv**  
 
 
 ---
