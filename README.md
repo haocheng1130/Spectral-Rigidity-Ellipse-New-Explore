@@ -3,7 +3,7 @@ We use the scripts contained herein to provide further numerical evidence for dy
 
 There are currently 5 scripts: (as suggested by Professor Jacob De Simoi, I will put everything in py file)
 
-1. `ellipse_axes_and_collisions.ipynb`
+1. `ellipse_axes_and_collisions.py`
 2. `T_D_and_inverse.py`
 3. `paper_method_reduced_matrix_T.ipynb`
 4. `vectorization_reduced_matrix_T.ipynb`
