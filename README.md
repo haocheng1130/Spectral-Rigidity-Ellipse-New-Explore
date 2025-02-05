@@ -6,7 +6,7 @@ There are currently 5 scripts: (as suggested by Professor Jacopo De Simoi, I wil
 1. `ellipse_axes_and_collisions.py`
 2. `T_D_and_inverse.py`
 3. `paper_method_reduced_matrix_T.py`
-4. `vectorization_reduced_matrix_T.ipynb`
+4. `vectorization_reduced_matrix_T.py`
 5. `truncation_and_visualization.py`
 
 ---
@@ -195,7 +195,7 @@ It strictly follows the method described in the referenced paper (and Shanza’s
 ---
 
 
-### 4. vectorization_reduced_matrix_T.ipynb
+### 4. vectorization_reduced_matrix_T.py
  
 It follows the same underlying mathematical approach (as laid out in the paper and in Shanza’s code) for computing the matrix **T** of a billiard system with a given eccentricity. **However, the key innovation here is that many of the computations have been vectorized** for efficiency and (potential) speedup over a purely entry-by-entry approach.
 
