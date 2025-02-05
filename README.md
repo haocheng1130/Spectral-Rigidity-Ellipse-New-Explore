@@ -5,7 +5,7 @@ There are currently 5 scripts: (as suggested by Professor Jacopo De Simoi, I wil
 
 1. `ellipse_axes_and_collisions.py`
 2. `T_D_and_inverse.py`
-3. `paper_method_reduced_matrix_T.ipynb`
+3. `paper_method_reduced_matrix_T.py`
 4. `vectorization_reduced_matrix_T.ipynb`
 5. `truncation_and_visualization.py`
 
@@ -115,7 +115,7 @@ Finally, these matrices are combined to produce $T_D = D \times M$ and $T_D^{-1}
 ---
 
 
-### 3. paper_method_reduced_matrix_T.ipynb
+### 3. paper_method_reduced_matrix_T.py
  
 It strictly follows the method described in the referenced paper (and Shanza’s code) to construct the matrix **T** for a given eccentricity. Each entry of **T** is computed individually, which is why the runtime can become extremely long for larger matrices.
 
