@@ -5,10 +5,11 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-import pickle 
+import timeit
+import pickle
 
 # ------------------------------------------------------------------------------------------------------------
-# Step1: Follow the paper and Shanza's code, 
+# Step1: Follow the paper and Shanza's code,
 # we write functions to compute each entry for matrix T with a given eccentricity.
 # ------------------------------------------------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ def find_tangent_vector(x,y,str_e):
     x_tan = x_prime/mag
     return (x_tan, y_tan)
 
-def sinphi_lst(q, str_e):
+def sinphi_lst(q, str_e): # one possibility to speed this up is to derive an analytic formula for sinphi since we are dealing with ellipses!
     '''Returns a list of sin(phi) for all point in a given periodic orbit'''
     sinphi_list = []
     for pt in collision_period(q):
@@ -89,8 +90,10 @@ def T_of_q_j(q,j,str_e,e):
         return 1./mu_k
     col_pt = collision_period(q)
     col_amp = collision_amplitude(q)
-    sinphi_list_q = sinphi_lst(q,str_e)
+    sinphi_list_q = sinphi_lst(q,str_e) # this should be cached!!!!!!
 
+    ## This is quite inefficient; one can do this step using numpy probably, or at least generators.
+    sum = 0
     for k in range(q):
         sinphi = sinphi_list_q[k]
 
@@ -99,8 +102,8 @@ def T_of_q_j(q,j,str_e,e):
         mu_k = mu_analytic(col_amp[k],e)
 
         sum_exp = sinphi*(np.cos(2*np.pi*j*laz_k)/mu_k)
-        k_sum.append(sum_exp)
-    return(sum(k_sum))
+        sum += sum_exp
+    return sum
 
 # ------------------------------------------------------------------------------------------------------------
 # Step2: We write functions to compute the reduced matrix T for a given eccentricity.
@@ -114,25 +117,69 @@ def lambda_marvizi_melrose(j,str_e,e):
     """
     if (j%2==1): # Ellipse has additional symmetry: every odd term is 0
         return 0
-    magic_q=min(j+10,999)
+    # magic_q=min(j+10,999)
     q=j;
-    mmc=(q**2*T_of_q_j(q,j,str_e,e));
+
+    mmc=(q**2 * T_of_q_j(q,j,str_e,e));
     continuing=True
-    accord=0.000001 ## maybe we can use a smaller number !!!!!!!!!!
+    accord=0.01 ## maybe we can use a smaller number !!!!!!!!!!
+    start=time.time()
     while continuing:
         q=q+1;
-        mmc_new=(q**2*T_of_q_j(q,j,str_e,e));
-        continuing=(np.abs(mmc-mmc_new)<accord)
-        # mmc = mmc_new  ?
-    print ("mmc:",j," ",q," ",magic_q,"   -   ",mmc_new)
+        mmc_new=(q**2 * T_of_q_j(q,j,str_e,e));
+        continuing=(np.abs((mmc-mmc_new)/mmc) > accord) # caution: this may throw a div/0 !
+        mmc = mmc_new
+    elapsed = time.time() - start
+    q_trivial = 999
+    start=time.time()
+    mmc_trivial = (q_trivial**2 * T_of_q_j(q_trivial,j,str_e,e));
+    elapsed_trivial = time.time() - start
+    print ("Marvizi Melrose coefficient:",j," ",q,"   -   ",mmc_new, mmc_trivial, elapsed, elapsed_trivial)
     return mmc_new
 # We probably need to justify the choice of magic_q
 
 
+# We need to understand the accuracy of the above method; try and plot the values of mmc as q increases
+def test_lambda_marvizi_melrose(j,str_e,e):
+    """
+    This computes an approximate limit for q→∞ of T_qj
+    it computes the magic_q'th element of the vector
+
+    """
+    if (j%2==1): # Ellipse has additional symmetry: every odd term is 0
+        return 0
+    # magic_q=min(j+10,999)
+    q=j;
+
+    mmc=(q**2 * T_of_q_j(q,j,str_e,e));
+    continuing=True
+    accord=0.001 ## maybe we can use a smaller number !!!!!!!!!!
+    start=time.time()
+    mmc_list=[];
+    while continuing:
+        q=q+1;
+        mmc_new=(q**2 * T_of_q_j(q,j,str_e,e));
+        continuing=(np.abs((mmc-mmc_new)/mmc) > accord) # caution: this may throw a div/0 !
+        mmc = mmc_new
+        mmc_list.append(mmc)
+
+    elapsed = time.time() - start
+
+    q_trivial = 999
+    start=time.time()
+    mmc_trivial = (q_trivial**2 * T_of_q_j(q_trivial,j,str_e,e));
+    elapsed_trivial = time.time() - start
+    print(mmc_list)
+    plt.plot(mmc_list[-10:])
+    plt.show()
+    print ("Marvizi Melrose coefficient:",j," ",q,"   -   ",mmc_new, mmc_trivial, elapsed, elapsed_trivial)
+    return mmc_new
+# We probably need to justify the choice of magic_q
+
 def reduced_T_qj_matrix(max_q, max_j, str_e, e, lambda_MM):
     """
     Computes the reduced matrix tilde{T}_{q,j} for given parameters.
-    
+
     Parameters:
         max_q: int
             Maximum number of rows (q) to compute.
@@ -144,25 +191,26 @@ def reduced_T_qj_matrix(max_q, max_j, str_e, e, lambda_MM):
             Eccentricity.
         lambda_MM: list
             Precomputed Marvizi-Melrose coefficients for each j.
-    
+
     Returns:
         reduced_matrix: np.ndarray
             The reduced matrix \tilde{T}_{q,j} of size (max_q, max_j).
     """
     # Initialize the reduced matrix
     reduced_matrix = np.zeros((max_q, max_j))
-    
+
     for q in range(1, max_q + 1):  # Loop over rows (period q)
+        print(f"row {q}")
         for j in range(1, max_j + 1):  # Loop over columns (j)
             # Compute T_{q,j} using the provided function
             T_qj = T_of_q_j(q, j, str_e, e)
-            
+
             # Fetch \kappa_j = lambda_MM[j-1] (ensure j-1 is valid)
             kappa_j = lambda_MM[j - 1] if j - 1 < len(lambda_MM) else 0
-            
+
             # Compute \tilde{T}_{q,j}
             reduced_matrix[q - 1, j - 1] = T_qj - kappa_j / (q**2)
-    
+
     return reduced_matrix
 
 
@@ -179,34 +227,42 @@ magic_j = 750  # Arbitrary choice for truncating coefficients
 gamma = 3.5  # For faster decay
 arbitrary_accuracy = 100  # Controls accuracy of the computation
 
-sampled_e = [0.10]  # Eccentricities to consider,
+sampled_e = [0.25]  # Eccentricities to consider,
 lambda_MM_dict = {}  # Store Marvizi-Melrose coefficients for each eccentricity
 reduced_matrices = {}  # Store reduced matrices for each eccentricity
 
 max_q, max_j = 300, 300 # We can vary these numberes
 
+
+for e in sampled_e:
+    str_e = '%.2f' % e
+    collision_pts = pd.read_csv(f"all_periods_{str_e}e_col_amplitudes.txt", sep='\t')
+    collision_pts.drop("Unnamed: 0", axis=1, inplace=True)
+    print("Collision points loaded")
+    test_lambda_marvizi_melrose(10,str_e,e)
+
 # First loop: Compute Marvizi-Melrose coefficients
 for e in sampled_e:
     str_e = '%.2f' % e
     print(f"\n---\nProcessing eccentricity {e}")
-    
+
     # Load collision points
     collision_pts = pd.read_csv(f"all_periods_{str_e}e_col_amplitudes.txt", sep='\t')
     collision_pts.drop("Unnamed: 0", axis=1, inplace=True)
     print("Collision points loaded")
-    
+
     # Compute Marvizi-Melrose coefficients
     lambda_MM = []
     for j in np.arange(1, magic_j):
         l = lambda_marvizi_melrose(j, str_e, e)
-        if (j % 2 == 0) and (abs(l) < 1e-7): #stopping the computation after the coefficients for even j are close enough to 0
+        if (j % 2 == 0) and (abs(l) < 1e-17): #stopping the computation after the coefficients for even j are close enough to 0
             break
         lambda_MM.append(l)
+    print(f"Cached Marvizi-Melrose coefficients for eccentricity {e}; number of MM coefficients cached:{len(lambda_MM)}")
     for j in np.arange(len(lambda_MM) + 1, maxq * arbitrary_accuracy): #at this point the terms were close enough to 0, hence no need to compute
         lambda_MM.append(0)
-    
+
     lambda_MM_dict[e] = lambda_MM  # Store coefficients
-    print(f"Cached Marvizi-Melrose coefficients for eccentricity {e}")
 
 # Second loop: Compute reduced matrices
 for e in sampled_e:
