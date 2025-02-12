@@ -202,7 +202,7 @@ magic_j = 750      # Upper limit used for computing Marvizi–Melrose coefficien
 gamma = 3.5        # (Currently unused, but may be used to accelerate decay)
 arbitrary_accuracy = 100  # Controls the computational accuracy
 
-sampled_e = [0.10]  # List of eccentricities to process
+sampled_e = [0.25]  # List of eccentricities to process
 lambda_MM_dict = {}   # Dictionary to store Marvizi–Melrose coefficients for each eccentricity
 reduced_matrices = {} # Dictionary to store reduced T matrices for each eccentricity
 
