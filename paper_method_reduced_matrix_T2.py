@@ -169,7 +169,7 @@ def test_lambda_marvizi_melrose(j,str_e,e):
 
     elapsed = time.time() - start
 
-    q_trivial = 999
+    q_trivial = 999 # maybe we can set this to maxq?
     start=time.time()
     mmc_trivial = (q_trivial**2 * T_of_q_j(q_trivial,j,str_e,e));
     elapsed_trivial = time.time() - start
@@ -225,6 +225,9 @@ for e in sampled_e:
     T_of_q_j.cache_clear()
     
     # Compute Marvizi–Melrose coefficients
+    # Here we have two parameters to decide, one is accord, the other is abs(l)< 
+    # If we set accord to 0.01, we can use test_lambda_marvizi_melrose to see that the computation is very slow
+    # So if we want to get the reduced matrix T very fast but not that accurate, I suggest just using mmc_trivial
     lambda_MM = []
     for j in np.arange(1, magic_j):
         l = lambda_marvizi_melrose(j, str_e, e)
@@ -240,6 +243,7 @@ for e in sampled_e:
     print(f"Cached Marvizi-Melrose coefficients for eccentricity {e}")
     
     # Compute the reduced T matrix
+    # After cached all required data, this computation will be very fast.
     reduced_matrix = reduced_T_qj_matrix(max_q, max_j, str_e, e, lambda_MM)
     reduced_matrices[e] = reduced_matrix
 
