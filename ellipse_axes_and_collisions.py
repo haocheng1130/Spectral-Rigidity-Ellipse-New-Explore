@@ -26,7 +26,7 @@ pd.DataFrame(semi_axis_dict).to_csv("e_and_semi_axes.txt", sep = '\t') #make the
 # period q in [2,maxq) for eccentricities in [0,1)
 # ------------------------------------------------------
 
-maxq=10000
+maxq=1000
 
 semi_axes = pd.read_csv("e_and_semi_axes.txt", sep = '\t') # file containing the semi-axes associated with each eccentricity
 semi_axes.drop("Unnamed: 0", axis = 1, inplace = True)
@@ -95,4 +95,3 @@ for e in semi_axes:
     df.to_csv("./all_periods_{}e_col_amplitudes.txt".format(e),sep='\t') # creating the file containing the collision pts for every period given an eccentricity
 
 print("Done finding collision points")
-
