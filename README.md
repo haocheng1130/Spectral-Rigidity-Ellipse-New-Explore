@@ -1,12 +1,15 @@
 # Spectral-Rigidity-Ellipse-New-Explore
 We use the scripts contained herein to provide further numerical evidence for dynamical spectral rigidity among ellipses of various eccentricities. The code contained in these scripts follows the technique implemented in a paper by J. De Simoi, V. Kaloshin, and Q. Wei (a link to the paper is here: [Dynamical_Spectral_Rigidity](https://annals.math.princeton.edu/2017/186-1/p07)) and incorporates portions of code by Shanza Ayub.
 
-There are currently 5 scripts: (as suggested by Professor Jacopo De Simoi, I will put everything in py file)
+There are currently 7 scripts:
 
 1. `ellipse_axes_and_collisions.py`
 2. `T_D_and_inverse.py`
 3. `paper_method_reduced_matrix_T.py`
 4. `truncation_and_visualization.py`
+
+High-Precision Files
+All files whose names end with the digit 2 (for example, T_D_and_inverse2.py) are modified to use arbitrary‐precision arithmetic (via mpmath) instead of standard double‐precision. These “2” versions provide higher numerical accuracy but may run more slowly than the original files.
 
 ---
 
