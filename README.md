@@ -8,7 +8,7 @@ There are currently 7 scripts:
 3. `paper_method_reduced_matrix_T.py`
 4. `truncation_and_visualization.py`
 
-High-Precision Files
+
 All files whose names end with the digit 2 (for example, T_D_and_inverse2.py) are modified to use arbitrary‐precision arithmetic (via mpmath) instead of standard double‐precision. These “2” versions provide higher numerical accuracy but may run more slowly than the original files.
 
 ---
