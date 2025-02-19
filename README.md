@@ -6,8 +6,7 @@ There are currently 5 scripts: (as suggested by Professor Jacopo De Simoi, I wil
 1. `ellipse_axes_and_collisions.py`
 2. `T_D_and_inverse.py`
 3. `paper_method_reduced_matrix_T.py`
-4. `vectorization_reduced_matrix_T.py`
-5. `truncation_and_visualization.py`
+4. `truncation_and_visualization.py`
 
 ---
 
@@ -195,93 +194,8 @@ It strictly follows the method described in the referenced paper (and Shanza’s
 ---
 
 
-### 4. vectorization_reduced_matrix_T.py
- 
-It follows the same underlying mathematical approach (as laid out in the paper and in Shanza’s code) for computing the matrix **T** of a billiard system with a given eccentricity. **However, the key innovation here is that many of the computations have been vectorized** for efficiency and (potential) speedup over a purely entry-by-entry approach.
 
-> **Note**: While vectorization can significantly reduce runtime, floating-point rounding and the order of arithmetic operations may result in **slightly different numerical values** compared to earlier, purely iterative implementations. This discrepancy typically manifests at the level of $10^{-12}$ to $10^{-15}$.
-
-
-
-#### Overview
-
-1. **Step 1**  
-   - Implements functions to compute collision points (and associated collision amplitudes) for each period $q$.  
-   - Defines helper functions for angles $(\phi$), Lazutkin coordinates, and other geometry-based quantities.
-
-2. **Step 2**  
-   - Introduces `lambda_marvizi_melrose(j, str_e, e)`, which provides an approximate limit $\kappa_j$ for $T_{q,j}$ as $q \to \infty$.  
-   - The script prints intermediate results for debugging or monitoring convergence.
-
-3. **Step 3**  
-   - **Vectorization**: Uses array-based (NumPy) operations to compute $\sin(\phi)$, Lazutkin coordinates, and the entries $T_{q,j}$ in bulk rather than in a nested loop.  
-   - Gathers these results into the *reduced* matrix $\tilde{T}$, where  
-     \[
-       \tilde{T}_{q,j} = T_{q,j} \;-\; \frac{\kappa_j}{q^2}.
-     \]
-
-4. **Step 4**  
-   - Loops over a list of eccentricities (`sampled_e`) and computes the vectorized $\tilde{T}$ matrices for each.  
-   - Saves the results in `reduced_matrices2.pkl`, allowing later retrieval without recomputation.
-
-
-
-#### Key Observations
-
-- **Vectorization** significantly restructures the computation, summing many operations into a smaller number of bulk array operations.
-- The order and grouping of floating-point arithmetic differ from purely iterative code, so small numerical discrepancies at very high precision are expected.
-- With careful implementation, **large** matrix sizes (e.g., $300 \times 300$ or beyond) can be handled more feasibly than before—though performance gains will also depend on hardware and memory constraints.
-
-
-
-#### Script Details
-
-1. **Collision Points & Angles**  
-   - `collision_amplitude(q)`: Retrieves the $\theta$-like amplitudes for the $q$ collisions from a preloaded `collision_pts` DataFrame.  
-   - `collision_period(q)`: Converts these amplitudes to $(x,y)$ coordinates using the ellipse’s semi-axes.  
-   - `find_tangent_vector_vec()`: Vectorized calculation of tangent vectors at each collision point.  
-   - `sinphi_lst_vec()`: Vectorized computation of $\sin(\phi)$ for an entire array of collision points.
-
-2. **Matrix $T$ Computation**  
-   - `T_of_q_j(q, j, str_e, e)`: A reference function (iterative) for computing a single entry $T_{q,j}$. In the vectorized approach, it is replaced by bulk operations:  
-     - Summations over \(\sin(\phi) \cdot \cos(2\pi j \cdot \text{lazutkin\_coord}) / \mu\).  
-     - Performed across arrays rather than looping over individual indices.
-
-3. **Marvizi–Melrose Coefficients**  
-   - `lambda_marvizi_melrose(j, str_e, e)`:  
-     Determines $\kappa_j \approx \lim_{q \to \infty} \left(q^2 \cdot T_{q,j}\right)$.  
-   - These $\kappa_j$ values are then subtracted off to form $\tilde{T}_{q,j}$.
-
-4. **Reduced Matrix Construction**  
-   - `reduced_T_qj_matrix_vectorized()`:  
-     Uses the precomputed arrays for $\sin(\phi)$, Lazutkin coordinates, and $\mu$ to fill a 2D NumPy array of size max_q, max_j.  
-   - Allows for generating large $\tilde{T}$ matrices more efficiently than a naive nested loop.
-
-5. **Pickle Storage**  
-   - Results are saved in `reduced_matrices2.pkl`.  
-   - You can reload these arrays later using Python’s `pickle`.
-
-
-
-#### Usage and Notes
-
-1. **Input Files**  
-   - Requires `e_and_semi_axes.txt`, containing semi-axis lengths for different eccentricities.  
-   - Requires collision amplitude files (e.g., `all_periods_XXe_col_amplitudes.txt`, where `XX` is the numeric eccentricity).
-
-2. **Configuration**  
-   - `max_q`, `max_j` control the maximum (row, column) size of the matrix.  
-   - `sampled_e` is the list of eccentricities to process.  
-   - `magic_j`, `arbitrary_accuracy`, etc., are parameters for controlling the Marvizi–Melrose routine.
-
-3. **Run the Script**  
-   ```bash
-   vectorization_reduced_matrix_T.ipynb
-
----
-
-
-### 5. truncation_and_visualization.py
+### 4. truncation_and_visualization.py
 
 It focuses on **visualizing** the eigenvalues (the spectrum) of the reduced matrices $\tilde{T}$ generated in the previous steps, under various **truncations**. Three distinct visualization approaches are showcased:
 
