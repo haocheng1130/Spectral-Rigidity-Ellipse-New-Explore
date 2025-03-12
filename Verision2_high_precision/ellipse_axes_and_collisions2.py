@@ -1,7 +1,5 @@
 from mpmath import mp, mpf, sqrt, asin, atan2, ellipe, ellipk, ellipf, ellipfun, pi
 import pandas as pd
-import concurrent.futures
-
 
 # Set desired decimal precision (e.g., 50 decimal places)
 mp.dps = 50
@@ -37,7 +35,7 @@ df_axes.to_csv("e_and_semi_axes.txt", sep='\t')
 # ------------------------------------------------------------------------------------------------------------
 
 # Set maximum period
-maxq = 10000
+maxq = 1000
 
 # Read the semi-axis data from file
 semi_axes_df = pd.read_csv("e_and_semi_axes.txt", sep='\t')
@@ -63,97 +61,115 @@ def rotation_no(l, e):
     For a given lambda (l) and eccentricity (e), compute the rotation number.
     The rotation number is defined as:
         F(asin(l/b), k_l_sq) / (2*K(k_l_sq))
-    where k_l_sq = (a^2 - b^2)/(a^2 - l^2)
+    where F is the incomplete elliptic integral of the first kind and
+    K is the complete elliptic integral of the first kind.
     """
-    a, b = semi_axes[e]
+    a = semi_axes[e][0]
+    b = semi_axes[e][1]
+    # Compute k_l_sq = (a^2 - b^2) / (a^2 - l^2)
     k_l_sq = (a**2 - b**2) / (a**2 - l**2)
+    # Compute the amplitude phi = asin(l/b)
     phi = asin(l / b)
-    F_val = mp.ellipf(phi, k_l_sq)
-    K_val = mp.ellipk(k_l_sq)
-    return F_val / (2 * K_val)
+    # Compute the incomplete elliptic integral F(phi, k_l_sq)
+    F = ellipf(phi, k_l_sq)
+    # Return the rotation number
+    return F / (2 * ellipk(k_l_sq))
+
 
 def find_lambda(w):
     """
     Find an approximate lambda (l) for each eccentricity such that the rotation
-    number equals w. Uses a binary search with tolerance 1e-10.
+    number equals w. A binary search is used for each eccentricity with a tolerance.
     Returns a dictionary mapping eccentricity (string key) to the corresponding lambda.
     """
     l_eccen_dict = {}
-    tol = mp.mpf('1e-10')
+    # tol = mp.mpf('1e-10') ### WE MIGHT NEED TO CHANGE THIS!!!
+    # If we are working with high precison, this absolute tolerance clearly not doing a good job
+    # So instead, we try relative convergence
+    tol = mp.mpf('1e-15')   # for typical relative accuracy
     for e in semi_axes:
-        a, b = semi_axes[e]
+        a = semi_axes[e][0]
+        b = semi_axes[e][1]
         start = mp.mpf(0)
         end = b
         l_val = (start + end) / 2
         while True:
             w_0 = rotation_no(l_val, e)
-            if abs(w - w_0) < tol:
+            if abs(w - w_0) < tol * abs(w):
                 l_eccen_dict[e] = l_val
                 break
             elif w > w_0:
                 start = l_val
+                l_val = (start + end) / 2
             else:
                 end = l_val
-            l_val = (start + end) / 2
+                l_val = (start + end) / 2
+            
+        # End of binary search for this eccentricity
     return l_eccen_dict
 
-# Precompute lambda values for each period.
-# period_lambda_dict maps period (as a string) to a dictionary that maps eccentricity to lambda.
+# Precompute lambda values for each period q (as a dictionary).
+# period_lambda_dict will map period (as a string) to a dictionary that maps eccentricity to lambda.
 period_lambda_dict = {}
 for q in range(3, maxq):
+    # Compute rotation number w = 1/q (as high-precision number)
     w = mp.mpf(1) / q
     period_lambda_dict[str(q)] = find_lambda(w)
-    print(q, "\r")
+    print(q, "\r")  # simple progress indicator
 print("Done finding λ")
 
 def find_collision_pts(e, q):
     """
     For a given eccentricity (e) and period (q), find the collision points.
-    The collision points are given by the Jacobi amplitude (phi) computed via mpmath's ellipfun.
+    The collision points are given by the Jacobi amplitude (phi) computed from the
+    Jacobi elliptic functions.
     """
     collisions_dict = {}
-    a, b = semi_axes[e]
+    a = semi_axes[e][0]
+    b = semi_axes[e][1]
+    # Retrieve the corresponding lambda for this eccentricity and period
     l_val = period_lambda_dict[q][e]
+    # Compute k_l_sq = (a^2 - b^2) / (a^2 - l^2)
     k_l_sq = (a**2 - b**2) / (a**2 - l_val**2)
-    K_val = mp.ellipk(k_l_sq)
+    # Compute the complete elliptic integral of the first kind K
+    K = ellipk(k_l_sq)
+    # For each collision (j=0,...,q-1), compute the collision point.
     for j in range(int(q)):
-        d_l_q = (4 * K_val) / mp.mpf(q)
-        t_j = K_val + j * d_l_q
-        # Create the function objects for sn and cn with parameter k_l_sq.
-        fsn = mp.ellipfun('sn')
-        fcn = mp.ellipfun('cn')
-        # Compute the amplitude using atan2 to mimic a positive angle.
-        phi = atan2(fcn(u=t_j, m=k_l_sq), fsn(u=t_j, m=k_l_sq))
+        # d_l_q divides the interval (4K) evenly among q collisions
+        d_l_q = (4 * K) / mp.mpf(q)
+        t_j = K + j * d_l_q
+        # Compute the Jacobi elliptic functions at t_j with parameter k_l_sq.
+        # In mpmath, we use ellipfun: first create the function object for parameter k_l_sq,
+        # then evaluate it at t_j. The returned value is a named tuple with attribute 'am' for the amplitude.
+        fsn = ellipfun('sn')
+        fcn = ellipfun('cn')
         
+        # ensure a positive angle, so phi will be in [0, 2pi]
+        # I AM NOT SURE HOW TO SET THE RANGE OF phi!!!!!!!!!, because in Shanza's code, phi=am which don't have restriction.
+        phi = atan2(fsn(u=t_j, m=k_l_sq),fcn(u=t_j, m=k_l_sq))
+        
+        if phi<mp.pi/2:
+            phi += 2*mp.pi
+    
         collisions_dict[str(j).zfill(2)] = phi
     return collisions_dict
 
-def compute_collision_for_eccentricity(e):
-    """
-    Compute collision points for all periods for a given eccentricity e.
-    Returns a tuple (e, eccen_row_dict) where eccen_row_dict maps period strings to collision dictionaries.
-    """
+
+
+# For each eccentricity, compute and store collision points for all periods.
+for e in semi_axes:
+    # Dictionary to hold collision points for each period for this eccentricity.
     eccen_row_dict = {}
-    # Manually add the bouncing ball orbit (period 2)
+    # Add manually the bouncing ball orbit (period 2) with collision points at pi/2 and 3*pi/2.
     eccen_row_dict["02"] = {"00": mp.pi/2, "01": 3 * mp.pi/2}
     for q in range(3, maxq):
         q_str = str(q)
         eccen_row_dict[str(q).zfill(2)] = find_collision_pts(e, q_str)
-        # Optionally, print progress per eccentricity
-        print(f"Eccentricity {e}, period {q}")
-    return e, eccen_row_dict
-
-# Parallelize over eccentricities using ProcessPoolExecutor.
-results = []
-with concurrent.futures.ProcessPoolExecutor() as executor:
-    # Dispatch computation for each eccentricity.
-    futures = {executor.submit(compute_collision_for_eccentricity, e): e for e in semi_axes}
-    for future in concurrent.futures.as_completed(futures):
-        e, eccen_row_dict = future.result()
-        # Convert the dictionary to a DataFrame and save to file.
-        df_collision = pd.DataFrame(eccen_row_dict)
-        filename = f"./all_periods_{e}e_col_amplitudes.txt"
-        df_collision.to_csv(filename, sep='\t')
-        print(f"Done for eccentricity {e}")
-        
+        print(q, "\r")  # progress indicator
+    # Convert the dictionary to a DataFrame and save to file.
+    df_collision = pd.DataFrame(eccen_row_dict)
+    filename = f"./all_periods_{e}e_col_amplitudes.txt"
+    df_collision.to_csv(filename, sep='\t')
+    
 print("Done finding collision points")
+
