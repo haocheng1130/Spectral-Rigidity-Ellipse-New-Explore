@@ -38,7 +38,10 @@ There are **four Python scripts** in the repository root:
 * Loads the collision-point files generated above.
 * Evaluates
 
-$$\mathcal{T}_{q,j} = \sum_{n=0}^{q-1}\frac{\cos(2\pi j\,x_{n}^{q})}{\mu(x_{n}^{q})}\,\sin(\phi_{n}^{q})$$
+$$
+\mathcal{T}_{q,j} = \sum _{n=0}^{q-1} \frac{\cos(2\pi j x_n^q)}{\mu(x_n^q)}\sin(\phi_n^q)
+$$
+
 
 
 
@@ -84,7 +87,6 @@ $$\mathcal{T}_{q,j} = \sum_{n=0}^{q-1}\frac{\cos(2\pi j\,x_{n}^{q})}{\mu(x_{n}^{
 **Generates files (per N, per e)**
 
 * `spectrum_<eccentricity>e_<N>.png` – eigenvalues in the complex plane
-* `norms_<eccentricity>e_<N>.png` – ‖λ‖ vs. index curve
 
 *Note –* File names adapt automatically to the eccentricity list, the truncation sizes, and the precision settings chosen when the script is run.
 
