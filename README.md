@@ -3,7 +3,7 @@
 We use the scripts contained herein to **provide numerical evidence for dynamical spectral rigidity among ellipses of various eccentricities**.
 The workflow follows the method introduced by **J. De Simoi, V. Kaloshin and Q. Wei** (see the two companion papers listed at the end of this file).
 
-There are **four Python scripts** in the repository root (or in a `scripts/` folder, if you keep them there):
+There are **four Python scripts** in the repository root:
 
 1. `ellipse_axes_and_collisions3.py`
 2. `paper_method_T_matrix.py`
@@ -38,9 +38,11 @@ There are **four Python scripts** in the repository root (or in a `scripts/` fol
 * Loads the collision-point files generated above.
 * Evaluates
 
-  ```
-  T_{qj} = Σ_{n = 0}^{q-1}  sin(φ_{qn}) · cos(2π j x_{qn}) / μ(x_{qn})
-  ```
+$$\mathcal{T}_{q,j} = \sum_{n=0}^{q-1}\frac{\cos(2\pi j\,x_{n}^{q})}{\mu(x_{n}^{q})}\,\sin(\phi_{n}^{q})$$
+
+
+
+
 
   (this matches Eq. (3) in De Simoi et al., 2017).
 * Results for every eccentricity are cached in a Python dictionary and serialised with **pickle**.
@@ -71,9 +73,9 @@ There are **four Python scripts** in the repository root (or in a `scripts/` fol
 
 * Forms the composite matrix
 
-  ```
-  T̃ = T_D_inverse · T
-  ```
+
+  $$\tilde{T} = T_D^{-1} \cdot T$$
+  
 
   loading `T_matrices.pkl` and `matrix_T_D_inverse.pkl`.
 * For a user-supplied list of sizes `N` it truncates the leading `N × N` block, computes eigenvalues and norms.
